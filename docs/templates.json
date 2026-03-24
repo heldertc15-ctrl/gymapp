@@ -1,5 +1,5 @@
 {
-  "Push": ["Bench Press", "Overhead Press", "Incline Dumbbell Press", "Tricep Pushdown", "Lateral Raise"],
-  "Pull": ["Deadlift", "Barbell Row", "Lat Pulldown", "Face Pull", "Barbell Curl"],
-  "Legs": ["Squat", "Romanian Deadlift", "Leg Press", "Leg Curl", "Calf Raise"]
+  "Push": ["Bench Press", "Shoulder Press", "Incline Dumbbell Press", "Tricep Pushdown", "Lateral Raise"],
+  "Pull": ["Seated Row", "Hammer Curl", "Lat Pulldown", "Dumbbell Row", "Barbell Curl"],
+  "Legs": ["Squat", "Leg Extension", "Leg Press", "Leg Curl", "Calf Raise"]
 }
