@@ -76,7 +76,7 @@ const defaultTemplates: SplitTemplate[] = [
 
 async function loadTemplatesFromServer(): Promise<SplitTemplate[]> {
   try {
-    const response = await fetch('/templates.json')
+    const response = await fetch('/templates.json', { cache: 'no-store' })
     if (!response.ok) return defaultTemplates
     const data = await response.json()
     return [
@@ -99,6 +99,12 @@ function App() {
   )
   const [showHistory, setShowHistory] = useState(false)
   const [loaded, setLoaded] = useState(false)
+
+  async function syncFromServer() {
+    const serverTemplates = await loadTemplatesFromServer()
+    setTemplates(serverTemplates)
+    window.localStorage.removeItem(STORAGE_KEYS.templates)
+  }
 
   useEffect(() => {
     loadTemplatesFromServer().then((serverTemplates) => {
@@ -265,9 +271,14 @@ function App() {
         </div>
 
         {workouts.length > 0 && (
-          <button className="history-toggle" onClick={() => setShowHistory(!showHistory)}>
-            {showHistory ? 'Hide' : 'View'} recent workouts
-          </button>
+          <div className="history-controls">
+            <button className="history-toggle" onClick={() => setShowHistory(!showHistory)}>
+              {showHistory ? 'Hide' : 'View'} recent workouts
+            </button>
+            <button className="history-toggle" onClick={syncFromServer}>
+              Refresh exercises
+            </button>
+          </div>
         )}
 
         {showHistory && (

@@ -111,6 +111,13 @@ body {
   width: 100%;
 }
 
+.history-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 32px;
+}
+
 .history-list {
   display: flex;
   flex-direction: column;
