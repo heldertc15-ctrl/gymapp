@@ -172,16 +172,16 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 0 4px;
+  padding: 0 2px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .exercise-title {
-  font-size: 2.5rem;
+  font-size: 1.8rem;
   font-weight: 800;
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   color: var(--ink);
 }
 
@@ -193,10 +193,23 @@ body {
 
 .set-card {
   background: var(--surface);
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 12px;
   border: 2px solid transparent;
   transition: all 0.2s ease;
+}
+
+.set-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.set-header span {
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .set-card.done {
@@ -218,13 +231,13 @@ body {
 }
 
 .done-btn {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 2px solid #555;
   background: var(--bg);
   color: var(--ink-muted);
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -241,8 +254,41 @@ body {
 
 .set-inputs {
   display: flex;
-  gap: 6px;
+  gap: 4px;
   align-items: center;
+}
+
+.set-inputs input {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+  border: 2px solid #333;
+  border-radius: 10px;
+  padding: 10px 2px;
+  color: var(--ink);
+  font-size: 1rem;
+  text-align: center;
+  font-weight: 600;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.set-inputs input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.set-inputs input::placeholder {
+  color: #444;
+  font-weight: 400;
+}
+
+.set-inputs span {
+  color: var(--ink-muted);
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .set-inputs input {
