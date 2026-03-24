@@ -30,9 +30,10 @@ body {
 
 .app-shell {
   min-height: 100vh;
-  padding: 24px 20px 100px;
+  padding: 24px 12px 120px;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 /* Home Screen */
@@ -171,7 +172,7 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 0 8px;
+  padding: 0 4px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -192,8 +193,8 @@ body {
 
 .set-card {
   background: var(--surface);
-  border-radius: 20px;
-  padding: 20px;
+  border-radius: 16px;
+  padding: 16px;
   border: 2px solid transparent;
   transition: all 0.2s ease;
 }
@@ -217,13 +218,13 @@ body {
 }
 
 .done-btn {
-  width: 56px;
-  height: 56px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  border: 3px solid #555;
+  border: 2px solid #555;
   background: var(--bg);
   color: var(--ink-muted);
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -240,7 +241,7 @@ body {
 
 .set-inputs {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 
@@ -249,10 +250,10 @@ body {
   min-width: 0;
   background: var(--bg);
   border: 2px solid #333;
-  border-radius: 16px;
-  padding: 16px 8px;
+  border-radius: 12px;
+  padding: 12px 4px;
   color: var(--ink);
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   text-align: center;
   font-weight: 600;
   -webkit-appearance: none;
@@ -271,7 +272,7 @@ body {
 
 .set-inputs span {
   color: var(--ink-muted);
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   text-align: center;
   font-weight: 600;
   flex-shrink: 0;
@@ -296,16 +297,16 @@ body {
 
 .workout-nav {
   display: flex;
-  gap: 16px;
-  margin-top: 32px;
+  gap: 12px;
+  margin-top: 24px;
   padding-bottom: 20px;
 }
 
 .nav-btn {
   flex: 1;
-  padding: 24px;
-  border-radius: 20px;
-  font-size: 1.3rem;
+  padding: 18px;
+  border-radius: 16px;
+  font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
