@@ -155,6 +155,7 @@ function App() {
   const [statusMessage, setStatusMessage] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState<Workout | null>(null)
   const [viewWorkout, setViewWorkout] = useState<Workout | null>(null)
+  const [exerciseMenuOpen, setExerciseMenuOpen] = useState(false)
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEYS.workouts, JSON.stringify(workouts))
@@ -407,13 +408,40 @@ function App() {
       {screen === 'workout' && currentExercise && (
         <>
           <div className="workout-progress">
+            <div className="progress-header">
+              <button className="exercise-selector" onClick={() => setExerciseMenuOpen(true)}>
+                {currentExercise.name} ▼
+              </button>
+              <button className="nav-btn small" onClick={() => setScreen('home')}>Done</button>
+            </div>
             <div className="progress-bar">
               <div className="progress-fill" style={{ width: `${progress}%` }} />
             </div>
             <p className="progress-text">
-              {currentExerciseIndex + 1} / {currentWorkout.length}
+              Set {currentWorkout.filter((_, i) => i <= currentExerciseIndex).reduce((sum, ex) => sum + ex.sets.filter(s => s.done).length, 0)} done
             </p>
           </div>
+
+          {exerciseMenuOpen && (
+            <div className="exercise-menu">
+              <div className="exercise-menu-header">
+                <h3>Select Exercise</h3>
+                <button onClick={() => setExerciseMenuOpen(false)}>×</button>
+              </div>
+              {currentWorkout.map((ex, idx) => (
+                <button
+                  key={ex.id}
+                  className={`exercise-menu-item ${idx === currentExerciseIndex ? 'active' : ''}`}
+                  onClick={() => {
+                    setCurrentExerciseIndex(idx)
+                    setExerciseMenuOpen(false)
+                  }}
+                >
+                  {ex.name}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="exercise-slide">
             <h2 className="exercise-title">{currentExercise.name}</h2>

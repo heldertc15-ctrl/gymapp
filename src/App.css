@@ -292,6 +292,83 @@ body {
   cursor: pointer;
 }
 
+/* Exercise Menu */
+.exercise-menu {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 50;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.exercise-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #333;
+}
+
+.exercise-menu-header h3 {
+  font-size: 1.2rem;
+}
+
+.exercise-menu-header button {
+  background: none;
+  border: none;
+  color: var(--ink-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.exercise-menu-item {
+  background: var(--surface);
+  border: 2px solid #333;
+  border-radius: 12px;
+  padding: 16px;
+  color: var(--ink);
+  font-size: 1.1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.exercise-menu-item:hover {
+  border-color: var(--accent);
+}
+
+.exercise-menu-item.active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #000;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.exercise-selector {
+  background: var(--surface);
+  border: 2px solid #333;
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: var(--ink);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.nav-btn.small {
+  padding: 10px 16px;
+  font-size: 0.9rem;
+}
+
 .modal-actions .nav-btn {
   flex: 1;
 }
