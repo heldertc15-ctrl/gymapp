@@ -98,6 +98,7 @@ function App() {
   const [screen, setScreen] = useState<'home' | 'workout' | 'edit-templates'>('home')
   const [selectedSplit, setSelectedSplit] = useState<Split | null>(null)
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
+  const [currentWorkout, setCurrentWorkout] = useState<WorkoutExercise[]>([])
   const [templates, setTemplates] = useState<SplitTemplate[]>(defaultTemplates)
   const [workouts, setWorkouts] = useState<Workout[]>(() => 
     readStorage(STORAGE_KEYS.workouts, [])
@@ -136,19 +137,19 @@ function App() {
     window.localStorage.setItem(STORAGE_KEYS.workouts, JSON.stringify(workouts))
   }, [workouts])
 
-  const template = templates.find((t) => t.split === selectedSplit)
-  const exercises: WorkoutExercise[] = template?.exercises.map((ex) =>
-    createExercise(ex.name),
-  ) ?? []
-
   function startWorkout(split: Split) {
+    const template = templates.find((t) => t.split === split)
+    const exercises = template?.exercises.map((ex) =>
+      createExercise(ex.name),
+    ) ?? []
+    setCurrentWorkout(exercises)
     setSelectedSplit(split)
     setCurrentExerciseIndex(0)
     setScreen('workout')
   }
 
   function finishExercise() {
-    if (currentExerciseIndex < exercises.length - 1) {
+    if (currentExerciseIndex < currentWorkout.length - 1) {
       setCurrentExerciseIndex((i) => i + 1)
     } else {
       completeWorkout()
@@ -161,28 +162,46 @@ function App() {
       name: `${selectedSplit} Day`,
       split: selectedSplit!,
       date: getToday(),
-      exercises,
+      exercises: currentWorkout,
       createdAt: new Date().toISOString(),
     }
     setWorkouts((prev) => [workout, ...prev])
     setScreen('home')
     setSelectedSplit(null)
+    setCurrentWorkout([])
   }
 
   function updateSet(exerciseIdx: number, setIdx: number, field: 'weight' | 'reps', value: string) {
-    const newExercises = [...exercises]
-    newExercises[exerciseIdx].sets[setIdx][field] = value
+    setCurrentWorkout((prev) => {
+      const updated = [...prev]
+      updated[exerciseIdx] = { ...updated[exerciseIdx], sets: [...updated[exerciseIdx].sets] }
+      updated[exerciseIdx].sets[setIdx] = { ...updated[exerciseIdx].sets[setIdx], [field]: value }
+      return updated
+    })
   }
 
   function toggleSetDone(exerciseIdx: number, setIdx: number) {
-    const newExercises = [...exercises]
-    newExercises[exerciseIdx].sets[setIdx].done = !newExercises[exerciseIdx].sets[setIdx].done
+    setCurrentWorkout((prev) => {
+      const updated = [...prev]
+      updated[exerciseIdx] = { ...updated[exerciseIdx], sets: [...updated[exerciseIdx].sets] }
+      updated[exerciseIdx].sets[setIdx] = { 
+        ...updated[exerciseIdx].sets[setIdx], 
+        done: !updated[exerciseIdx].sets[setIdx].done 
+      }
+      return updated
+    })
   }
 
   function addSet(exerciseIdx: number) {
-    const newExercises = [...exercises]
-    const prevSet = newExercises[exerciseIdx].sets[newExercises[exerciseIdx].sets.length - 1]
-    newExercises[exerciseIdx].sets.push(createSet(prevSet?.weight || '', prevSet?.reps || '8'))
+    setCurrentWorkout((prev) => {
+      const updated = [...prev]
+      const lastSet = updated[exerciseIdx].sets[updated[exerciseIdx].sets.length - 1]
+      updated[exerciseIdx] = { 
+        ...updated[exerciseIdx], 
+        sets: [...updated[exerciseIdx].sets, createSet(lastSet?.weight || '', lastSet?.reps || '8')]
+      }
+      return updated
+    })
   }
 
   function addExerciseToTemplate(split: Split) {
@@ -218,8 +237,8 @@ function App() {
     )
   }
 
-  const progress = exercises.length > 0 ? ((currentExerciseIndex + 1) / exercises.length) * 100 : 0
-  const currentExercise = exercises[currentExerciseIndex]
+  const progress = currentWorkout.length > 0 ? ((currentExerciseIndex + 1) / currentWorkout.length) * 100 : 0
+  const currentExercise = currentWorkout[currentExerciseIndex]
 
   if (screen === 'edit-templates') {
     const editingSplit = selectedSplit
@@ -326,7 +345,7 @@ function App() {
           <div className="progress-fill" style={{ width: `${progress}%` }} />
         </div>
         <p className="progress-text">
-          {currentExerciseIndex + 1} / {exercises.length}
+          {currentExerciseIndex + 1} / {currentWorkout.length}
         </p>
       </div>
 
@@ -348,6 +367,7 @@ function App() {
               <div className="set-inputs">
                 <input
                   type="number"
+                  inputMode="numeric"
                   value={set.weight}
                   onChange={(e) => updateSet(currentExerciseIndex, setIdx, 'weight', e.target.value)}
                   placeholder="lbs"
@@ -355,6 +375,7 @@ function App() {
                 <span>x</span>
                 <input
                   type="number"
+                  inputMode="numeric"
                   value={set.reps}
                   onChange={(e) => updateSet(currentExerciseIndex, setIdx, 'reps', e.target.value)}
                   placeholder="reps"
@@ -374,7 +395,7 @@ function App() {
           Exit
         </button>
         <button className="nav-btn primary" onClick={finishExercise}>
-          {currentExerciseIndex === exercises.length - 1 ? 'Finish' : 'Next'}
+          {currentExerciseIndex === currentWorkout.length - 1 ? 'Finish' : 'Next'}
         </button>
       </div>
     </div>

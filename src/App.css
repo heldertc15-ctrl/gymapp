@@ -172,6 +172,8 @@ body {
   display: flex;
   flex-direction: column;
   padding: 0 8px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .exercise-title {
@@ -237,21 +239,24 @@ body {
 }
 
 .set-inputs {
-  display: grid;
-  grid-template-columns: 1fr 40px 1fr;
+  display: flex;
   gap: 8px;
   align-items: center;
 }
 
 .set-inputs input {
+  flex: 1;
+  min-width: 0;
   background: var(--bg);
   border: 2px solid #333;
   border-radius: 16px;
-  padding: 20px;
+  padding: 16px 8px;
   color: var(--ink);
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   text-align: center;
   font-weight: 600;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .set-inputs input:focus {
@@ -266,9 +271,10 @@ body {
 
 .set-inputs span {
   color: var(--ink-muted);
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   text-align: center;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .add-set-btn {
