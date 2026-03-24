@@ -74,21 +74,48 @@ const defaultTemplates: SplitTemplate[] = [
   { split: 'Legs', exercises: [] },
 ]
 
+async function loadTemplatesFromServer(): Promise<SplitTemplate[]> {
+  try {
+    const response = await fetch('/templates.json')
+    if (!response.ok) return defaultTemplates
+    const data = await response.json()
+    return [
+      { split: 'Push', exercises: (data.Push || []).map((name: string) => ({ name })) },
+      { split: 'Pull', exercises: (data.Pull || []).map((name: string) => ({ name })) },
+      { split: 'Legs', exercises: (data.Legs || []).map((name: string) => ({ name })) },
+    ]
+  } catch {
+    return defaultTemplates
+  }
+}
+
 function App() {
   const [screen, setScreen] = useState<'home' | 'workout' | 'edit-templates'>('home')
   const [selectedSplit, setSelectedSplit] = useState<Split | null>(null)
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
-  const [templates, setTemplates] = useState<SplitTemplate[]>(() => 
-    readStorage(STORAGE_KEYS.templates, defaultTemplates)
-  )
+  const [templates, setTemplates] = useState<SplitTemplate[]>(defaultTemplates)
   const [workouts, setWorkouts] = useState<Workout[]>(() => 
     readStorage(STORAGE_KEYS.workouts, [])
   )
   const [showHistory, setShowHistory] = useState(false)
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
+    loadTemplatesFromServer().then((serverTemplates) => {
+      const saved = readStorage<SplitTemplate[] | null>(STORAGE_KEYS.templates, null)
+      if (saved && saved.some(t => t.exercises.length > 0)) {
+        setTemplates(saved)
+      } else {
+        setTemplates(serverTemplates)
+      }
+      setLoaded(true)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (!loaded) return
     window.localStorage.setItem(STORAGE_KEYS.templates, JSON.stringify(templates))
-  }, [templates])
+  }, [templates, loaded])
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEYS.workouts, JSON.stringify(workouts))
