@@ -30,7 +30,7 @@ body {
 
 .app-shell {
   min-height: 100vh;
-  padding: 24px 12px 120px;
+  padding: 16px 8px 100px;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
@@ -194,16 +194,38 @@ body {
 .set-card {
   background: var(--surface);
   border-radius: 12px;
-  padding: 12px;
+  padding: 10px;
   border: 2px solid transparent;
   transition: all 0.2s ease;
+  overflow: hidden;
 }
 
 .set-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+}
+
+.set-header span {
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.done-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #555;
+  background: var(--bg);
+  color: var(--ink-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .set-header span {
@@ -254,19 +276,21 @@ body {
 
 .set-inputs {
   display: flex;
+  flex-wrap: nowrap;
   gap: 4px;
   align-items: center;
+  justify-content: space-between;
 }
 
 .set-inputs input {
-  flex: 1;
+  width: 35%;
   min-width: 0;
   background: var(--bg);
   border: 2px solid #333;
-  border-radius: 10px;
-  padding: 10px 2px;
+  border-radius: 8px;
+  padding: 10px 4px;
   color: var(--ink);
-  font-size: 1rem;
+  font-size: 0.9rem;
   text-align: center;
   font-weight: 600;
   -webkit-appearance: none;
@@ -287,7 +311,7 @@ body {
   color: var(--ink-muted);
   text-align: center;
   flex-shrink: 0;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
 }
 
