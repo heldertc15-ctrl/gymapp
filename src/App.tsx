@@ -106,6 +106,12 @@ function App() {
   const [showHistory, setShowHistory] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
+  const [deleteConfirm, setDeleteConfirm] = useState<Workout | null>(null)
+
+  function deleteWorkout(id: string) {
+    setWorkouts((prev) => prev.filter((w) => w.id !== id))
+    setDeleteConfirm(null)
+  }
 
   async function syncFromServer() {
     setStatusMessage('Refreshing...')
@@ -313,11 +319,14 @@ function App() {
 
         {showHistory && (
           <div className="history-list">
-            {workouts.slice(0, 5).map((w) => (
+            {workouts.slice(0, 10).map((w) => (
               <div key={w.id} className="history-item">
-                <span>{w.date}</span>
-                <span>{w.split}</span>
-                <span>{w.exercises.length} exercises</span>
+                <div className="history-info">
+                  <span>{w.date}</span>
+                  <span>{w.split}</span>
+                  <span>{w.exercises.length} exercises</span>
+                </div>
+                <button className="delete-btn" onClick={() => setDeleteConfirm(w)}>×</button>
               </div>
             ))}
           </div>
@@ -399,6 +408,23 @@ function App() {
         </button>
       </div>
     </div>
+  )
+
+  return (
+    <>
+      {deleteConfirm && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete workout?</h3>
+            <p>{deleteConfirm!.date} - {deleteConfirm!.split}</p>
+            <div className="modal-actions">
+              <button className="nav-btn secondary" onClick={() => setDeleteConfirm(null)}>Cancel</button>
+              <button className="nav-btn danger" onClick={() => deleteWorkout(deleteConfirm!.id)}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   )
 }
 
