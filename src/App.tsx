@@ -76,15 +76,19 @@ const defaultTemplates: SplitTemplate[] = [
 
 async function loadTemplatesFromServer(): Promise<SplitTemplate[]> {
   try {
-    const response = await fetch('/templates.json', { cache: 'no-store' })
-    if (!response.ok) return defaultTemplates
+    const response = await fetch('./templates.json', { cache: 'no-store' })
+    if (!response.ok) {
+      console.error('Failed to fetch templates:', response.status, response.statusText)
+      return defaultTemplates
+    }
     const data = await response.json()
     return [
       { split: 'Push', exercises: (data.Push || []).map((name: string) => ({ name })) },
       { split: 'Pull', exercises: (data.Pull || []).map((name: string) => ({ name })) },
       { split: 'Legs', exercises: (data.Legs || []).map((name: string) => ({ name })) },
     ]
-  } catch {
+  } catch (err) {
+    console.error('Error loading templates:', err)
     return defaultTemplates
   }
 }
