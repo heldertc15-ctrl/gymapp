@@ -270,13 +270,14 @@ function App() {
           ))}
         </div>
 
+        <button className="history-toggle" onClick={syncFromServer}>
+          Refresh exercises
+        </button>
+
         {workouts.length > 0 && (
           <div className="history-controls">
             <button className="history-toggle" onClick={() => setShowHistory(!showHistory)}>
               {showHistory ? 'Hide' : 'View'} recent workouts
-            </button>
-            <button className="history-toggle" onClick={syncFromServer}>
-              Refresh exercises
             </button>
           </div>
         )}
