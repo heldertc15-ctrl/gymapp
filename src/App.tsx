@@ -76,7 +76,8 @@ const defaultTemplates: SplitTemplate[] = [
 
 async function loadTemplatesFromServer(): Promise<SplitTemplate[]> {
   try {
-    const response = await fetch('./templates.json', { cache: 'no-store' })
+    const baseUrl = window.location.pathname.replace(/\/$/, '')
+    const response = await fetch(baseUrl + '/templates.json', { cache: 'no-store' })
     if (!response.ok) {
       console.error('Failed to fetch templates:', response.status, response.statusText)
       return defaultTemplates
