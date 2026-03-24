@@ -99,11 +99,15 @@ function App() {
   )
   const [showHistory, setShowHistory] = useState(false)
   const [loaded, setLoaded] = useState(false)
+  const [statusMessage, setStatusMessage] = useState('')
 
   async function syncFromServer() {
+    setStatusMessage('Refreshing...')
     const serverTemplates = await loadTemplatesFromServer()
     setTemplates(serverTemplates)
     window.localStorage.removeItem(STORAGE_KEYS.templates)
+    setStatusMessage(`Loaded ${serverTemplates.reduce((sum, t) => sum + t.exercises.length, 0)} exercises`)
+    setTimeout(() => setStatusMessage(''), 2000)
   }
 
   useEffect(() => {
@@ -251,6 +255,7 @@ function App() {
         <header className="home-header">
           <h1>Let's Train</h1>
           <p>Select your workout</p>
+          {statusMessage && <p className="status-pill">{statusMessage}</p>}
         </header>
 
         <div className="split-grid">
