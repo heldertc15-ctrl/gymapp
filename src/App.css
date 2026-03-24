@@ -247,6 +247,51 @@ body {
   gap: 12px;
 }
 
+/* View Workout */
+.view-workout {
+  padding-bottom: 40px;
+}
+
+.view-exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.view-exercise {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.view-exercise h3 {
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  color: var(--ink);
+}
+
+.view-sets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.view-set {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-muted);
+  font-size: 0.95rem;
+}
+
+.view-set-value {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.history-item {
+  cursor: pointer;
+}
+
 .modal-actions .nav-btn {
   flex: 1;
 }

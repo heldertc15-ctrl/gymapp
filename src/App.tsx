@@ -144,7 +144,7 @@ function getAllExerciseStats(allWorkouts: Workout[]) {
 }
 
 function App() {
-  const [screen, setScreen] = useState<'home' | 'workout' | 'edit-templates'>('home')
+  const [screen, setScreen] = useState<'home' | 'workout' | 'edit-templates' | 'view-workout'>('home')
   const [selectedSplit, setSelectedSplit] = useState<Split | null>(null)
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
   const [currentWorkout, setCurrentWorkout] = useState<WorkoutExercise[]>([])
@@ -154,6 +154,7 @@ function App() {
   const [loaded, setLoaded] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState<Workout | null>(null)
+  const [viewWorkout, setViewWorkout] = useState<Workout | null>(null)
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEYS.workouts, JSON.stringify(workouts))
@@ -333,13 +334,13 @@ function App() {
               <div className="history-list">
                 <h3>Recent Workouts</h3>
                 {workouts.slice(0, 10).map((w: Workout) => (
-                  <div key={w.id} className="history-item">
+                  <div key={w.id} className="history-item" onClick={() => { setViewWorkout(w); setScreen('view-workout') }}>
                     <div className="history-info">
                       <span>{w.date}</span>
                       <span>{w.split}</span>
                       <span>{w.exercises.length} exercises</span>
                     </div>
-                    <button className="delete-btn" onClick={() => setDeleteConfirm(w)}>×</button>
+                    <button className="delete-btn" onClick={(e) => { e.stopPropagation(); setDeleteConfirm(w) }}>×</button>
                   </div>
                 ))}
               </div>
@@ -475,6 +476,31 @@ function App() {
           <h2>No exercises configured</h2>
           <p>Add exercises to your {selectedSplit} template first</p>
           <button className="nav-btn primary" onClick={() => setScreen('home')}>Go Back</button>
+        </div>
+      )}
+
+      {screen === 'view-workout' && viewWorkout && (
+        <div className="view-workout">
+          <header className="modal-header">
+            <button className="back-btn" onClick={() => setScreen('home')}>← Back</button>
+            <h1>{viewWorkout.date} - {viewWorkout.split}</h1>
+            <div />
+          </header>
+          <div className="view-exercises">
+            {viewWorkout.exercises.map((ex) => (
+              <div key={ex.id} className="view-exercise">
+                <h3>{ex.name}</h3>
+                <div className="view-sets">
+                  {ex.sets.filter(s => s.done && s.weight && s.reps).map((set, setIdx) => (
+                    <div key={set.id} className="view-set">
+                      <span>Set {setIdx + 1}:</span>
+                      <span className="view-set-value">{set.weight} x {set.reps}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
