@@ -117,7 +117,60 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-top: 32px;
+  margin-top: 24px;
+}
+
+.stats-section {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.stats-section h3 {
+  font-size: 1rem;
+  margin-bottom: 12px;
+  color: var(--ink);
+}
+
+.stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--surface-elevated);
+}
+
+.stat-item:last-child {
+  border-bottom: none;
+}
+
+.stat-name {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.stat-value {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.no-stats {
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+.exercise-pr {
+  text-align: center;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 12px;
 }
 
 .history-list {

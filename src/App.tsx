@@ -94,6 +94,57 @@ async function loadTemplatesFromServer(): Promise<SplitTemplate[]> {
   }
 }
 
+function normalizeName(name: string): string {
+  return name.trim().toLowerCase()
+}
+
+function getBestSet(sets: WorkoutSet[]) {
+  return [...sets]
+    .filter((s) => s.done && s.weight && s.reps)
+    .sort((a, b) => {
+      const aVal = Number(a.weight) * Number(a.reps)
+      const bVal = Number(b.weight) * Number(b.reps)
+      return bVal - aVal
+    })[0] ?? null
+}
+
+function getExercisePR(exerciseName: string, allWorkouts: Workout[]): { weight: string; reps: string } | null {
+  const target = normalizeName(exerciseName)
+  let bestPR: { weight: string; reps: string; value: number } | null = null
+
+  for (const workout of allWorkouts) {
+    for (const exercise of workout.exercises) {
+      if (normalizeName(exercise.name) !== target) continue
+      const best = getBestSet(exercise.sets)
+      if (!best) continue
+      const value = Number(best.weight) * Number(best.reps)
+      if (!bestPR || value > bestPR.value) {
+        bestPR = { weight: best.weight, reps: best.reps, value }
+      }
+    }
+  }
+
+  return bestPR ? { weight: bestPR.weight, reps: bestPR.reps } : null
+}
+
+function getAllExerciseStats(allWorkouts: Workout[]) {
+  const stats: Record<string, { weight: string; reps: string; value: number }> = {}
+
+  for (const workout of allWorkouts) {
+    for (const exercise of workout.exercises) {
+      const name = normalizeName(exercise.name)
+      const best = getBestSet(exercise.sets)
+      if (!best) continue
+      const value = Number(best.weight) * Number(best.reps)
+      if (!stats[name] || value > stats[name].value) {
+        stats[name] = { weight: best.weight, reps: best.reps, value }
+      }
+    }
+  }
+
+  return stats
+}
+
 function App() {
   const [screen, setScreen] = useState<'home' | 'workout' | 'edit-templates'>('home')
   const [selectedSplit, setSelectedSplit] = useState<Split | null>(null)
@@ -318,18 +369,39 @@ function App() {
         )}
 
         {showHistory && (
-          <div className="history-list">
-            {workouts.slice(0, 10).map((w) => (
-              <div key={w.id} className="history-item">
-                <div className="history-info">
-                  <span>{w.date}</span>
-                  <span>{w.split}</span>
-                  <span>{w.exercises.length} exercises</span>
+          <>
+            <div className="stats-section">
+              <h3>All-Time PRs</h3>
+              {(() => {
+                const stats = getAllExerciseStats(workouts)
+                const entries = Object.entries(stats)
+                if (entries.length === 0) return <p className="no-stats">No PRs yet</p>
+                return (
+                  <div className="stats-list">
+                    {entries.map(([name, pr]) => (
+                      <div key={name} className="stat-item">
+                        <span className="stat-name">{name}</span>
+                        <span className="stat-value">{pr.weight} x {pr.reps}</span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
+            </div>
+            <div className="history-list">
+              <h3>Recent Workouts</h3>
+              {workouts.slice(0, 10).map((w: Workout) => (
+                <div key={w.id} className="history-item">
+                  <div className="history-info">
+                    <span>{w.date}</span>
+                    <span>{w.split}</span>
+                    <span>{w.exercises.length} exercises</span>
+                  </div>
+                  <button className="delete-btn" onClick={() => setDeleteConfirm(w)}>×</button>
                 </div>
-                <button className="delete-btn" onClick={() => setDeleteConfirm(w)}>×</button>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     )
@@ -360,6 +432,10 @@ function App() {
 
       <div className="exercise-slide">
         <h2 className="exercise-title">{currentExercise?.name}</h2>
+        {(() => {
+          const pr = getExercisePR(currentExercise?.name || '', workouts)
+          return pr ? <p className="exercise-pr">PR: {pr.weight} x {pr.reps}</p> : null
+        })()}
         
         <div className="sets-container">
           {currentExercise?.sets.map((set, setIdx) => (
