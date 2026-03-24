@@ -78,18 +78,14 @@ async function loadTemplatesFromServer(): Promise<SplitTemplate[]> {
   try {
     const baseUrl = window.location.pathname.replace(/\/$/, '')
     const response = await fetch(baseUrl + '/templates.json', { cache: 'no-store' })
-    if (!response.ok) {
-      console.error('Failed to fetch templates:', response.status, response.statusText)
-      return defaultTemplates
-    }
+    if (!response.ok) return defaultTemplates
     const data = await response.json()
     return [
       { split: 'Push', exercises: (data.Push || []).map((name: string) => ({ name })) },
       { split: 'Pull', exercises: (data.Pull || []).map((name: string) => ({ name })) },
       { split: 'Legs', exercises: (data.Legs || []).map((name: string) => ({ name })) },
     ]
-  } catch (err) {
-    console.error('Error loading templates:', err)
+  } catch {
     return defaultTemplates
   }
 }
@@ -110,6 +106,8 @@ function getBestSet(sets: WorkoutSet[]) {
 
 function getExercisePR(exerciseName: string, allWorkouts: Workout[]): { weight: string; reps: string } | null {
   const target = normalizeName(exerciseName)
+  if (!target) return null
+  
   let bestPR: { weight: string; reps: string; value: number } | null = null
 
   for (const workout of allWorkouts) {
@@ -151,13 +149,32 @@ function App() {
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
   const [currentWorkout, setCurrentWorkout] = useState<WorkoutExercise[]>([])
   const [templates, setTemplates] = useState<SplitTemplate[]>(defaultTemplates)
-  const [workouts, setWorkouts] = useState<Workout[]>(() => 
-    readStorage(STORAGE_KEYS.workouts, [])
-  )
+  const [workouts, setWorkouts] = useState<Workout[]>(() => readStorage(STORAGE_KEYS.workouts, []))
   const [showHistory, setShowHistory] = useState(false)
   const [loaded, setLoaded] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState<Workout | null>(null)
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_KEYS.workouts, JSON.stringify(workouts))
+  }, [workouts])
+
+  useEffect(() => {
+    if (!loaded) return
+    window.localStorage.setItem(STORAGE_KEYS.templates, JSON.stringify(templates))
+  }, [templates, loaded])
+
+  useEffect(() => {
+    loadTemplatesFromServer().then((serverTemplates) => {
+      const saved = readStorage<SplitTemplate[] | null>(STORAGE_KEYS.templates, null)
+      if (saved && saved.some(t => t.exercises.length > 0)) {
+        setTemplates(saved)
+      } else {
+        setTemplates(serverTemplates)
+      }
+      setLoaded(true)
+    })
+  }, [])
 
   function deleteWorkout(id: string) {
     setWorkouts((prev) => prev.filter((w) => w.id !== id))
@@ -173,32 +190,9 @@ function App() {
     setTimeout(() => setStatusMessage(''), 2000)
   }
 
-  useEffect(() => {
-    loadTemplatesFromServer().then((serverTemplates) => {
-      const saved = readStorage<SplitTemplate[] | null>(STORAGE_KEYS.templates, null)
-      if (saved && saved.some(t => t.exercises.length > 0)) {
-        setTemplates(saved)
-      } else {
-        setTemplates(serverTemplates)
-      }
-      setLoaded(true)
-    })
-  }, [])
-
-  useEffect(() => {
-    if (!loaded) return
-    window.localStorage.setItem(STORAGE_KEYS.templates, JSON.stringify(templates))
-  }, [templates, loaded])
-
-  useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEYS.workouts, JSON.stringify(workouts))
-  }, [workouts])
-
   function startWorkout(split: Split) {
     const template = templates.find((t) => t.split === split)
-    const exercises = template?.exercises.map((ex) =>
-      createExercise(ex.name),
-    ) ?? []
+    const exercises = template?.exercises.map((ex) => createExercise(ex.name)) ?? []
     setCurrentWorkout(exercises)
     setSelectedSplit(split)
     setCurrentExerciseIndex(0)
@@ -241,9 +235,9 @@ function App() {
     setCurrentWorkout((prev) => {
       const updated = [...prev]
       updated[exerciseIdx] = { ...updated[exerciseIdx], sets: [...updated[exerciseIdx].sets] }
-      updated[exerciseIdx].sets[setIdx] = { 
-        ...updated[exerciseIdx].sets[setIdx], 
-        done: !updated[exerciseIdx].sets[setIdx].done 
+      updated[exerciseIdx].sets[setIdx] = {
+        ...updated[exerciseIdx].sets[setIdx],
+        done: !updated[exerciseIdx].sets[setIdx].done
       }
       return updated
     })
@@ -253,254 +247,237 @@ function App() {
     setCurrentWorkout((prev) => {
       const updated = [...prev]
       const lastSet = updated[exerciseIdx].sets[updated[exerciseIdx].sets.length - 1]
-      updated[exerciseIdx] = { 
-        ...updated[exerciseIdx], 
+      updated[exerciseIdx] = {
+        ...updated[exerciseIdx],
         sets: [...updated[exerciseIdx].sets, createSet(lastSet?.weight || '', lastSet?.reps || '8')]
       }
       return updated
     })
   }
 
-  function addExerciseToTemplate(split: Split) {
-    setTemplates((prev) =>
-      prev.map((t) =>
-        t.split === split
-          ? { ...t, exercises: [...t.exercises, { name: '' }] }
-          : t
-      )
-    )
-  }
-
-  function updateTemplateExercise(split: Split, idx: number, value: string) {
-    setTemplates((prev) =>
-      prev.map((t) =>
-        t.split === split
-          ? {
-              ...t,
-              exercises: t.exercises.map((ex, i) => (i === idx ? { name: value } : ex)),
-            }
-          : t
-      )
-    )
-  }
-
-  function removeTemplateExercise(split: Split, idx: number) {
-    setTemplates((prev) =>
-      prev.map((t) =>
-        t.split === split
-          ? { ...t, exercises: t.exercises.filter((_, i) => i !== idx) }
-          : t
-      )
-    )
-  }
-
   const progress = currentWorkout.length > 0 ? ((currentExerciseIndex + 1) / currentWorkout.length) * 100 : 0
   const currentExercise = currentWorkout[currentExerciseIndex]
 
-  if (screen === 'edit-templates') {
-    const editingSplit = selectedSplit
-    const editingTemplate = templates.find((t) => t.split === editingSplit)
-
-    return (
-      <div className="app-shell">
-        <header className="modal-header">
-          <button className="back-btn" onClick={() => setScreen('home')}>← Back</button>
-          <h1>Edit {editingSplit}</h1>
-          <div />
-        </header>
-
-        <div className="template-editor">
-          {editingTemplate?.exercises.map((ex, idx) => (
-            <div key={idx} className="template-exercise-row">
-              <input
-                type="text"
-                value={ex.name}
-                onChange={(e) => updateTemplateExercise(editingSplit!, idx, e.target.value)}
-                placeholder="Exercise name"
-              />
-              <button className="remove-btn" onClick={() => removeTemplateExercise(editingSplit!, idx)}>×</button>
+  return (
+    <div className="app-shell">
+      {deleteConfirm && (
+        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Delete workout?</h3>
+            <p>{deleteConfirm.date} - {deleteConfirm.split}</p>
+            <div className="modal-actions">
+              <button className="nav-btn secondary" onClick={() => setDeleteConfirm(null)}>Cancel</button>
+              <button className="nav-btn danger" onClick={() => deleteWorkout(deleteConfirm.id)}>Delete</button>
             </div>
-          ))}
-          
-          <button className="add-exercise-btn" onClick={() => addExerciseToTemplate(editingSplit!)}>
-            + Add Exercise
+          </div>
+        </div>
+      )}
+
+      {screen === 'home' && (
+        <>
+          <header className="home-header">
+            <h1>Let's Train</h1>
+            <p>Select your workout</p>
+            {statusMessage && <p className="status-pill">{statusMessage}</p>}
+          </header>
+
+          <div className="split-grid">
+            {templates.map((t) => (
+              <div key={t.split} className="split-card-wrapper">
+                <button className="split-card" onClick={() => startWorkout(t.split)}>
+                  <span className="split-emoji">
+                    {t.split === 'Push' ? '💪' : t.split === 'Pull' ? '🦅' : '🦵'}
+                  </span>
+                  <span className="split-name">{t.split}</span>
+                  <span className="split-count">{t.exercises.length} exercises</span>
+                </button>
+                <button className="edit-template-btn" onClick={() => { setSelectedSplit(t.split); setScreen('edit-templates') }}>
+                  Edit
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <button className="history-toggle" onClick={syncFromServer}>
+            Refresh exercises
           </button>
-        </div>
-      </div>
-    )
-  }
 
-  if (screen === 'home') {
-    return (
-      <div className="app-shell">
-        <header className="home-header">
-          <h1>Let's Train</h1>
-          <p>Select your workout</p>
-          {statusMessage && <p className="status-pill">{statusMessage}</p>}
-        </header>
-
-        <div className="split-grid">
-          {templates.map((t) => (
-            <div key={t.split} className="split-card-wrapper">
-              <button className="split-card" onClick={() => startWorkout(t.split)}>
-                <span className="split-emoji">
-                  {t.split === 'Push' ? '💪' : t.split === 'Pull' ? '🦅' : '🦵'}
-                </span>
-                <span className="split-name">{t.split}</span>
-                <span className="split-count">{t.exercises.length} exercises</span>
-              </button>
-              <button className="edit-template-btn" onClick={() => { setSelectedSplit(t.split); setScreen('edit-templates') }}>
-                Edit
+          {workouts.length > 0 && (
+            <div className="history-controls">
+              <button className="history-toggle" onClick={() => setShowHistory(!showHistory)}>
+                {showHistory ? 'Hide' : 'View'} recent workouts
               </button>
             </div>
-          ))}
-        </div>
+          )}
 
-        <button className="history-toggle" onClick={syncFromServer}>
-          Refresh exercises
-        </button>
+          {showHistory && (
+            <>
+              <div className="stats-section">
+                <h3>All-Time PRs</h3>
+                {(() => {
+                  const stats = getAllExerciseStats(workouts)
+                  const entries = Object.entries(stats)
+                  if (entries.length === 0) return <p className="no-stats">No PRs yet</p>
+                  return (
+                    <div className="stats-list">
+                      {entries.map(([name, pr]) => (
+                        <div key={name} className="stat-item">
+                          <span className="stat-name">{name}</span>
+                          <span className="stat-value">{pr.weight} x {pr.reps}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })()}
+              </div>
+              <div className="history-list">
+                <h3>Recent Workouts</h3>
+                {workouts.slice(0, 10).map((w: Workout) => (
+                  <div key={w.id} className="history-item">
+                    <div className="history-info">
+                      <span>{w.date}</span>
+                      <span>{w.split}</span>
+                      <span>{w.exercises.length} exercises</span>
+                    </div>
+                    <button className="delete-btn" onClick={() => setDeleteConfirm(w)}>×</button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </>
+      )}
 
-        {workouts.length > 0 && (
-          <div className="history-controls">
-            <button className="history-toggle" onClick={() => setShowHistory(!showHistory)}>
-              {showHistory ? 'Hide' : 'View'} recent workouts
+      {screen === 'edit-templates' && (
+        <>
+          <header className="modal-header">
+            <button className="back-btn" onClick={() => setScreen('home')}>← Back</button>
+            <h1>Edit {selectedSplit}</h1>
+            <div />
+          </header>
+
+          <div className="template-editor">
+            {templates.find((t) => t.split === selectedSplit)?.exercises.map((ex, idx) => (
+              <div key={idx} className="template-exercise-row">
+                <input
+                  type="text"
+                  value={ex.name}
+                  onChange={(e) => {
+                    const split = selectedSplit!
+                    setTemplates((prev) =>
+                      prev.map((t) =>
+                        t.split === split
+                          ? { ...t, exercises: t.exercises.map((e2, i2) => (i2 === idx ? { name: e.target.value } : e2)) }
+                          : t
+                      )
+                    )
+                  }}
+                  placeholder="Exercise name"
+                />
+                <button className="remove-btn" onClick={() => {
+                  const split = selectedSplit!
+                  setTemplates((prev) =>
+                    prev.map((t) =>
+                      t.split === split
+                        ? { ...t, exercises: t.exercises.filter((_, i) => i !== idx) }
+                        : t
+                    )
+                  )
+                }}>×</button>
+              </div>
+            ))}
+            
+            <button className="add-exercise-btn" onClick={() => {
+              const split = selectedSplit!
+              setTemplates((prev) =>
+                prev.map((t) =>
+                  t.split === split
+                    ? { ...t, exercises: [...t.exercises, { name: '' }] }
+                    : t
+                )
+              )
+            }}>
+              + Add Exercise
             </button>
           </div>
-        )}
+        </>
+      )}
 
-        {showHistory && (
-          <>
-            <div className="stats-section">
-              <h3>All-Time PRs</h3>
-              {(() => {
-                const stats = getAllExerciseStats(workouts)
-                const entries = Object.entries(stats)
-                if (entries.length === 0) return <p className="no-stats">No PRs yet</p>
-                return (
-                  <div className="stats-list">
-                    {entries.map(([name, pr]) => (
-                      <div key={name} className="stat-item">
-                        <span className="stat-name">{name}</span>
-                        <span className="stat-value">{pr.weight} x {pr.reps}</span>
-                      </div>
-                    ))}
-                  </div>
-                )
-              })()}
+      {screen === 'workout' && currentExercise && (
+        <>
+          <div className="workout-progress">
+            <div className="progress-bar">
+              <div className="progress-fill" style={{ width: `${progress}%` }} />
             </div>
-            <div className="history-list">
-              <h3>Recent Workouts</h3>
-              {workouts.slice(0, 10).map((w: Workout) => (
-                <div key={w.id} className="history-item">
-                  <div className="history-info">
-                    <span>{w.date}</span>
-                    <span>{w.split}</span>
-                    <span>{w.exercises.length} exercises</span>
+            <p className="progress-text">
+              {currentExerciseIndex + 1} / {currentWorkout.length}
+            </p>
+          </div>
+
+          <div className="exercise-slide">
+            <h2 className="exercise-title">{currentExercise.name}</h2>
+            {(() => {
+              const pr = getExercisePR(currentExercise.name, workouts)
+              return pr ? <p className="exercise-pr">PR: {pr.weight} x {pr.reps}</p> : null
+            })()}
+            
+            <div className="sets-container">
+              {currentExercise.sets.map((set, setIdx) => (
+                <div key={set.id} className={`set-card ${set.done ? 'done' : ''}`}>
+                  <div className="set-header">
+                    <span>Set {setIdx + 1}</span>
+                    <button
+                      className={`done-btn ${set.done ? 'done' : ''}`}
+                      onClick={() => toggleSetDone(currentExerciseIndex, setIdx)}
+                    >
+                      {set.done ? '✓' : '○'}
+                    </button>
                   </div>
-                  <button className="delete-btn" onClick={() => setDeleteConfirm(w)}>×</button>
+                  <div className="set-inputs">
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      value={set.weight}
+                      onChange={(e) => updateSet(currentExerciseIndex, setIdx, 'weight', e.target.value)}
+                      placeholder="lbs"
+                    />
+                    <span>x</span>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      value={set.reps}
+                      onChange={(e) => updateSet(currentExerciseIndex, setIdx, 'reps', e.target.value)}
+                      placeholder="reps"
+                    />
+                  </div>
                 </div>
               ))}
             </div>
-          </>
-        )}
-      </div>
-    )
-  }
 
-  if (!currentExercise) {
-    return (
-      <div className="app-shell">
+            <button className="add-set-btn" onClick={() => addSet(currentExerciseIndex)}>
+              + Add set
+            </button>
+          </div>
+
+          <div className="workout-nav">
+            <button className="nav-btn secondary" onClick={() => setScreen('home')}>
+              Exit
+            </button>
+            <button className="nav-btn primary" onClick={finishExercise}>
+              {currentExerciseIndex === currentWorkout.length - 1 ? 'Finish' : 'Next'}
+            </button>
+          </div>
+        </>
+      )}
+
+      {screen === 'workout' && !currentExercise && (
         <div className="empty-workout">
           <h2>No exercises configured</h2>
           <p>Add exercises to your {selectedSplit} template first</p>
           <button className="nav-btn primary" onClick={() => setScreen('home')}>Go Back</button>
         </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="app-shell workout-screen">
-      <div className="workout-progress">
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${progress}%` }} />
-        </div>
-        <p className="progress-text">
-          {currentExerciseIndex + 1} / {currentWorkout.length}
-        </p>
-      </div>
-
-      <div className="exercise-slide">
-        <h2 className="exercise-title">{currentExercise?.name}</h2>
-        {(() => {
-          const pr = getExercisePR(currentExercise?.name || '', workouts)
-          return pr ? <p className="exercise-pr">PR: {pr.weight} x {pr.reps}</p> : null
-        })()}
-        
-        <div className="sets-container">
-          {currentExercise?.sets.map((set, setIdx) => (
-            <div key={set.id} className={`set-card ${set.done ? 'done' : ''}`}>
-              <div className="set-header">
-                <span>Set {setIdx + 1}</span>
-                <button
-                  className={`done-btn ${set.done ? 'done' : ''}`}
-                  onClick={() => toggleSetDone(currentExerciseIndex, setIdx)}
-                >
-                  {set.done ? '✓' : '○'}
-                </button>
-              </div>
-              <div className="set-inputs">
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  value={set.weight}
-                  onChange={(e) => updateSet(currentExerciseIndex, setIdx, 'weight', e.target.value)}
-                  placeholder="lbs"
-                />
-                <span>x</span>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  value={set.reps}
-                  onChange={(e) => updateSet(currentExerciseIndex, setIdx, 'reps', e.target.value)}
-                  placeholder="reps"
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <button className="add-set-btn" onClick={() => addSet(currentExerciseIndex)}>
-          + Add set
-        </button>
-      </div>
-
-      <div className="workout-nav">
-        <button className="nav-btn secondary" onClick={() => setScreen('home')}>
-          Exit
-        </button>
-        <button className="nav-btn primary" onClick={finishExercise}>
-          {currentExerciseIndex === currentWorkout.length - 1 ? 'Finish' : 'Next'}
-        </button>
-      </div>
-    </div>
-  )
-
-  return (
-    <>
-      {deleteConfirm && (
-        <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Delete workout?</h3>
-            <p>{deleteConfirm!.date} - {deleteConfirm!.split}</p>
-            <div className="modal-actions">
-              <button className="nav-btn secondary" onClick={() => setDeleteConfirm(null)}>Cancel</button>
-              <button className="nav-btn danger" onClick={() => deleteWorkout(deleteConfirm!.id)}>Delete</button>
-            </div>
-          </div>
-        </div>
       )}
-    </>
+    </div>
   )
 }
 
