@@ -27,6 +27,7 @@ type Workout = {
 
 type ExerciseTemplate = {
   name: string
+  defaultSets?: number
 }
 
 type SplitTemplate = {
@@ -54,8 +55,9 @@ function createSet(weight: string, reps: string): WorkoutSet {
   return { id: createId(), weight, reps, done: false }
 }
 
-function createExercise(name: string): WorkoutExercise {
-  return { id: createId(), name, sets: [createSet('', '8')] }
+function createExercise(name: string, defaultSets: number = 3): WorkoutExercise {
+  const sets = Array.from({ length: defaultSets }, () => createSet('', '8'))
+  return { id: createId(), name, sets }
 }
 
 function readStorage<T>(key: string, fallback: T): T {
@@ -194,7 +196,7 @@ function App() {
 
   function startWorkout(split: Split) {
     const template = templates.find((t) => t.split === split)
-    const exercises = template?.exercises.map((ex) => createExercise(ex.name)) ?? []
+    const exercises = template?.exercises.map((ex) => createExercise(ex.name, ex.defaultSets || 3)) ?? []
     setCurrentWorkout(exercises)
     setSelectedSplit(split)
     setCurrentExerciseIndex(0)
@@ -363,19 +365,38 @@ function App() {
               <div key={idx} className="template-exercise-row">
                 <input
                   type="text"
+                  className="exercise-name-input"
                   value={ex.name}
                   onChange={(e) => {
                     const split = selectedSplit!
                     setTemplates((prev) =>
                       prev.map((t) =>
                         t.split === split
-                          ? { ...t, exercises: t.exercises.map((e2, i2) => (i2 === idx ? { name: e.target.value } : e2)) }
+                          ? { ...t, exercises: t.exercises.map((e2, i2) => (i2 === idx ? { ...e2, name: e.target.value } : e2)) }
                           : t
                       )
                     )
                   }}
                   placeholder="Exercise name"
                 />
+                <input
+                  type="number"
+                  className="sets-input"
+                  value={ex.defaultSets || 3}
+                  onChange={(e) => {
+                    const split = selectedSplit!
+                    setTemplates((prev) =>
+                      prev.map((t) =>
+                        t.split === split
+                          ? { ...t, exercises: t.exercises.map((e2, i2) => (i2 === idx ? { ...e2, defaultSets: parseInt(e.target.value) || 3 } : e2)) }
+                          : t
+                      )
+                    )
+                  }}
+                  min="1"
+                  max="10"
+                />
+                <span className="sets-label">sets</span>
                 <button className="remove-btn" onClick={() => {
                   const split = selectedSplit!
                   setTemplates((prev) =>

@@ -690,9 +690,38 @@ body {
 
 .template-exercise-row {
   display: grid;
-  grid-template-columns: 1fr 40px;
-  gap: 12px;
+  grid-template-columns: 1fr 50px 40px 40px;
+  gap: 8px;
   align-items: center;
+  margin-bottom: 8px;
+}
+
+.template-exercise-row input {
+  background: var(--surface);
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 10px;
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+.template-exercise-row input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.exercise-name-input {
+  grid-column: 1;
+}
+
+.sets-input {
+  text-align: center;
+}
+
+.sets-label {
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+  text-align: center;
 }
 
 .template-exercise-row input {
