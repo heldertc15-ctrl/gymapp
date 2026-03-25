@@ -259,7 +259,9 @@ function App() {
     })
   }
 
-  const progress = currentWorkout.length > 0 ? ((currentExerciseIndex + 1) / currentWorkout.length) * 100 : 0
+  const totalSets = currentWorkout.reduce((sum, ex) => sum + ex.sets.length, 0)
+  const doneSets = currentWorkout.reduce((sum, ex) => sum + ex.sets.filter(s => s.done).length, 0)
+  const progress = totalSets > 0 ? (doneSets / totalSets) * 100 : 0
   const currentExercise = currentWorkout[currentExerciseIndex]
 
   return (
@@ -439,7 +441,7 @@ function App() {
               <div className="progress-fill" style={{ width: `${progress}%` }} />
             </div>
             <p className="progress-text">
-              Set {currentWorkout.filter((_, i) => i <= currentExerciseIndex).reduce((sum, ex) => sum + ex.sets.filter(s => s.done).length, 0)} done
+              {doneSets} / {totalSets} sets ({Math.round(progress)}%)
             </p>
           </div>
 
