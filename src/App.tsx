@@ -451,18 +451,22 @@ function App() {
                 <h3>Select Exercise</h3>
                 <button onClick={() => setExerciseMenuOpen(false)}>×</button>
               </div>
-              {currentWorkout.map((ex, idx) => (
-                <button
-                  key={ex.id}
-                  className={`exercise-menu-item ${idx === currentExerciseIndex ? 'active' : ''}`}
-                  onClick={() => {
-                    setCurrentExerciseIndex(idx)
-                    setExerciseMenuOpen(false)
-                  }}
-                >
-                  {ex.name}
-                </button>
-              ))}
+              {currentWorkout.map((ex, idx) => {
+                const exerciseDone = ex.sets.length > 0 && ex.sets.every(s => s.done)
+                return (
+                  <button
+                    key={ex.id}
+                    className={`exercise-menu-item ${idx === currentExerciseIndex ? 'active' : ''} ${exerciseDone ? 'completed' : ''}`}
+                    onClick={() => {
+                      setCurrentExerciseIndex(idx)
+                      setExerciseMenuOpen(false)
+                    }}
+                  >
+                    {exerciseDone && <span className="check-icon">✓</span>}
+                    <span className={exerciseDone ? 'strikethrough' : ''}>{ex.name}</span>
+                  </button>
+                )
+              })}
             </div>
           )}
 

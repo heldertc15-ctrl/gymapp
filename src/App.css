@@ -347,6 +347,20 @@ body {
   color: #000;
 }
 
+.exercise-menu-item.completed {
+  opacity: 0.6;
+}
+
+.exercise-menu-item.completed .check-icon {
+  color: var(--accent);
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.exercise-menu-item .strikethrough {
+  text-decoration: line-through;
+}
+
 .progress-header {
   display: flex;
   justify-content: space-between;
