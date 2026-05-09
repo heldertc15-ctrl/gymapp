@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[97425,["/gymapp/_next/static/chunks/0crdfzn4fz9ys.js","/gymapp/_next/static/chunks/0d3shmwh5_nmn.js","/gymapp/_next/static/chunks/0wsn.8ofz1v2o.js","/gymapp/_next/static/chunks/107kr285v_90o.js"],"SettingsPage"]
+3:I[97367,["/gymapp/_next/static/chunks/0crdfzn4fz9ys.js","/gymapp/_next/static/chunks/0d3shmwh5_nmn.js","/gymapp/_next/static/chunks/0wsn.8ofz1v2o.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+0:{"rsc":["$","$1","c",{"children":[["$","$L2",null,{}],[["$","script","script-0",{"src":"/gymapp/_next/static/chunks/107kr285v_90o.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"Q1wYLETDHaPsRhVIIesoX"}
+5:null
